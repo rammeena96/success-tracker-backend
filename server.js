@@ -1,5 +1,6 @@
+console.log("MY SERVER FILE LOADED");
 
-console.log("MY SERVER FILE LOADED");const dns = require("dns");
+const dns = require("dns");
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 require("dotenv").config();
@@ -7,7 +8,9 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+
 const Teacher = require("./models/Teacher");
+const DemoClass = require("./models/DemoClass");
 
 const app = express();
 
@@ -58,6 +61,8 @@ app.post("/api/counselling", async (req, res) => {
     });
   }
 });
+
+// Teacher API
 app.post("/api/teacher", async (req, res) => {
   try {
     const data = await Teacher.create(req.body);
@@ -74,10 +79,35 @@ app.post("/api/teacher", async (req, res) => {
     });
   }
 });
-// Test Route
+
+// Demo Class API
+app.post("/api/demo-class", async (req, res) => {
+  try {
+    const data = await DemoClass.create(req.body);
+
+    res.status(201).json({
+      success: true,
+      message: "Demo Class Request Saved",
+      data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// Test Routes
 app.get("/test-teacher", (req, res) => {
   res.send("Teacher Route Loaded");
 });
+
+app.get("/test-demo", (req, res) => {
+  res.send("Demo Route Loaded");
+});
+
+// Home Route
 app.get("/", (req, res) => {
   res.send("Success Tracker Backend Running 🚀");
 });
