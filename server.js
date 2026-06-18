@@ -1,4 +1,5 @@
-const dns = require("dns");
+
+console.log("MY SERVER FILE LOADED");const dns = require("dns");
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 require("dotenv").config();
@@ -6,6 +7,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const Teacher = require("./models/Teacher");
 
 const app = express();
 
@@ -56,8 +58,26 @@ app.post("/api/counselling", async (req, res) => {
     });
   }
 });
+app.post("/api/teacher", async (req, res) => {
+  try {
+    const data = await Teacher.create(req.body);
 
+    res.status(201).json({
+      success: true,
+      message: "Teacher Registration Saved",
+      data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
 // Test Route
+app.get("/test-teacher", (req, res) => {
+  res.send("Teacher Route Loaded");
+});
 app.get("/", (req, res) => {
   res.send("Success Tracker Backend Running 🚀");
 });
