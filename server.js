@@ -1,3 +1,4 @@
+
 console.log("MY SERVER FILE LOADED");
 
 const dns = require("dns");
@@ -108,6 +109,25 @@ app.get("/test-demo", (req, res) => {
 });
 
 // Home Route
+app.get("/api/admin/stats", async (req, res) => {
+  try {
+    const counsellings = await Counselling.countDocuments();
+    const teachers = await Teacher.countDocuments();
+    const democlasses = await DemoClass.countDocuments();
+
+    res.json({
+      success: true,
+      counsellings,
+      teachers,
+      democlasses,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
 app.get("/", (req, res) => {
   res.send("Success Tracker Backend Running 🚀");
 });
