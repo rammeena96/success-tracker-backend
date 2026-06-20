@@ -10,6 +10,10 @@ const teacherSchema = new mongoose.Schema({
   area: String,
   boards: String,
   about: String,
+  verified: {
+  type: Boolean,
+  default: false,
+},
   createdAt: {
     type: Date,
     default: Date.now,

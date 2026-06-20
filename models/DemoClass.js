@@ -8,6 +8,10 @@ const demoClassSchema = new mongoose.Schema({
   board: String,
   area: String,
   msg: String,
+  status: {
+  type: String,
+  default: "New",
+},
   createdAt: {
     type: Date,
     default: Date.now,

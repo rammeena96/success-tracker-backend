@@ -5,6 +5,10 @@ const counsellingSchema = new mongoose.Schema({
   phone: String,
   grade: String,
   concern: String,
+  status: {
+  type: String,
+  default: "New",
+},
   createdAt: {
     type: Date,
     default: Date.now,

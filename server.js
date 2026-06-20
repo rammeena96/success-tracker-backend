@@ -37,6 +37,12 @@ const counsellingSchema = new mongoose.Schema({
   phone: String,
   grade: String,
   concern: String,
+
+  status: {
+    type: String,
+    default: "New",
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -126,6 +132,34 @@ app.get("/api/admin/stats", async (req, res) => {
       success: false,
       error: error.message,
     });
+  }
+});
+// Admin CRM APIs
+
+app.get("/api/admin/counsellings", async (req, res) => {
+  try {
+    const data = await Counselling.find().sort({ createdAt: -1 });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/admin/teachers", async (req, res) => {
+  try {
+    const data = await Teacher.find().sort({ createdAt: -1 });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/admin/democlasses", async (req, res) => {
+  try {
+    const data = await DemoClass.find().sort({ createdAt: -1 });
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 app.get("/", (req, res) => {
