@@ -137,6 +137,29 @@ app.get("/api/admin/stats", async (req, res) => {
 // Admin CRM APIs
 
 app.get("/api/admin/counsellings", async (req, res) => {
+  // Update Counselling Status
+app.patch("/api/admin/counselling/:id", async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const updated = await Counselling.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      data: updated,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
   try {
     const data = await Counselling.find().sort({ createdAt: -1 });
     res.json(data);
