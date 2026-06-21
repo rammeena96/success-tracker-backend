@@ -168,13 +168,6 @@ app.patch("/api/admin/counselling/:id", async (req, res) => {
     });
   }
 });
-  try {
-    const data = await Counselling.find().sort({ createdAt: -1 });
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
 
 app.get("/api/admin/teachers", async (req, res) => {
   try {
