@@ -12,7 +12,8 @@ const mongoose = require("mongoose");
 
 const Teacher = require("./models/Teacher");
 const DemoClass = require("./models/DemoClass");
-
+const ParentRegistration = require("./models/ParentRegistration");
+const Counter = require("./models/Counter");
 const app = express();
 
 app.use(express.json());
@@ -100,6 +101,113 @@ app.post("/api/demo-class", async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
+      error: error.message,
+    });
+  }
+});
+
+// Parent Registration API
+app.post("/api/parent-registration", async (req, res) => {
+  try {
+    const {
+      parent_name,
+      mobile_number,
+      whatsapp_number,
+      email,
+      student_name,
+      student_class,
+      board,
+      school_name,
+      subjects_required,
+      tuition_mode,
+      preferred_time,
+      jaipur_area,
+      full_address,
+      pin_code,
+      tutor_gender_preference,
+      tutor_experience_preference,
+      tutor_preference_notes,
+    } = req.body;
+
+    // Basic required-field validation
+    if (
+      !parent_name ||
+      !mobile_number ||
+      !whatsapp_number ||
+      !email ||
+      !student_name ||
+      !student_class ||
+      !board ||
+      !school_name ||
+      !subjects_required ||
+      !tuition_mode ||
+      !preferred_time ||
+      !jaipur_area ||
+      !full_address ||
+      !pin_code ||
+      !tutor_gender_preference ||
+      !tutor_experience_preference
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill all required fields.",
+      });
+    }
+
+    // Get next registration number
+    const counter = await Counter.findOneAndUpdate(
+      { name: "parent_registration" },
+      { $inc: { seq: 1 } },
+      {
+        new: true,
+        upsert: true,
+        setDefaultsOnInsert: true,
+      }
+    );
+
+    const registrationId = `ST-P-${String(counter.seq).padStart(6, "0")}`;
+
+    // Save parent registration
+    const data = await ParentRegistration.create({
+      registrationId,
+
+      parentName: parent_name,
+      parentMobile: mobile_number,
+      whatsappNumber: whatsapp_number,
+      email,
+
+      studentName: student_name,
+      studentClass: student_class,
+      board,
+      schoolName: school_name,
+      subjects: subjects_required,
+
+      tuitionMode: tuition_mode,
+      preferredTime: preferred_time,
+      area: jaipur_area,
+      fullAddress: full_address,
+      pinCode: pin_code,
+
+      tutorGender: tutor_gender_preference,
+      tutorExperiencePreference: tutor_experience_preference,
+      additionalRequirements: tutor_preference_notes || "",
+
+      paymentStatus: "Pending",
+      registrationStatus: "Received",
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Parent registration received successfully.",
+      registrationId: data.registrationId,
+      data,
+    });
+  } catch (error) {
+    console.error("Parent Registration Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to save parent registration.",
       error: error.message,
     });
   }
