@@ -110,43 +110,42 @@ app.post("/api/demo-class", async (req, res) => {
 app.post("/api/parent-registration", async (req, res) => {
   try {
     const {
-      parent_name,
-      mobile_number,
-      whatsapp_number,
+      parentName,
+      parentMobile,
+      whatsappNumber,
       email,
-      student_name,
-      student_class,
+      studentName,
+      studentClass,
       board,
-      school_name,
-      subjects_required,
-      tuition_mode,
-      preferred_time,
-      jaipur_area,
-      full_address,
-      pin_code,
-      tutor_gender_preference,
-      tutor_experience_preference,
-      tutor_preference_notes,
+      schoolName,
+      subjects,
+      tuitionMode,
+      preferredTime,
+      area,
+      fullAddress,
+      pinCode,
+      tutorGender,
+      tutorExperiencePreference,
+      additionalRequirements,
     } = req.body;
 
-    // Basic required-field validation
+    // Required fields
     if (
-      !parent_name ||
-      !mobile_number ||
-      !whatsapp_number ||
-      !email ||
-      !student_name ||
-      !student_class ||
+      !parentName ||
+      !parentMobile ||
+      !whatsappNumber ||
+      !studentName ||
+      !studentClass ||
       !board ||
-      !school_name ||
-      !subjects_required ||
-      !tuition_mode ||
-      !preferred_time ||
-      !jaipur_area ||
-      !full_address ||
-      !pin_code ||
-      !tutor_gender_preference ||
-      !tutor_experience_preference
+      !schoolName ||
+      !subjects ||
+      !tuitionMode ||
+      !preferredTime ||
+      !area ||
+      !fullAddress ||
+      !pinCode ||
+      !tutorGender ||
+      !tutorExperiencePreference
     ) {
       return res.status(400).json({
         success: false,
@@ -154,7 +153,7 @@ app.post("/api/parent-registration", async (req, res) => {
       });
     }
 
-    // Get next registration number
+    // Generate registration number
     const counter = await Counter.findOneAndUpdate(
       { name: "parent_registration" },
       { $inc: { seq: 1 } },
@@ -167,111 +166,49 @@ app.post("/api/parent-registration", async (req, res) => {
 
     const registrationId = `ST-P-${String(counter.seq).padStart(6, "0")}`;
 
-    // Save parent registration
+    // Save registration
     const data = await ParentRegistration.create({
       registrationId,
 
-      parentName: parent_name,
-      parentMobile: mobile_number,
-      whatsappNumber: whatsapp_number,
-      email,
+      parentName,
+      parentMobile,
+      whatsappNumber,
+      email: email || "",
 
-      studentName: student_name,
-      studentClass: student_class,
+      studentName,
+      studentClass,
       board,
-      schoolName: school_name,
-      subjects: subjects_required,
+      schoolName,
 
-      tuitionMode: tuition_mode,
-      preferredTime: preferred_time,
-      area: jaipur_area,
-      fullAddress: full_address,
-      pinCode: pin_code,
+      subjects,
+      tuitionMode,
+      preferredTime,
 
-      tutorGender: tutor_gender_preference,
-      tutorExperiencePreference: tutor_experience_preference,
-      additionalRequirements: tutor_preference_notes || "",
+      area,
+      fullAddress,
+      pinCode,
+
+      tutorGender,
+      tutorExperiencePreference,
+      additionalRequirements: additionalRequirements || "",
 
       paymentStatus: "Pending",
       registrationStatus: "Received",
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Parent registration received successfully.",
       registrationId: data.registrationId,
       data,
     });
+
   } catch (error) {
     console.error("Parent Registration Error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Unable to save parent registration.",
-      error: error.message,
-    });
-  }
-});
-
-// Test Routes
-app.get("/test-teacher", (req, res) => {
-  res.send("Teacher Route Loaded");
-});
-
-app.get("/test-demo", (req, res) => {
-  res.send("Demo Route Loaded");
-});
-
-// Home Route
-app.get("/api/admin/stats", async (req, res) => {
-  try {
-    const counsellings = await Counselling.countDocuments();
-    const teachers = await Teacher.countDocuments();
-    const democlasses = await DemoClass.countDocuments();
-
-    res.json({
-      success: true,
-      counsellings,
-      teachers,
-      democlasses,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
-    });
-  }
-});
-// Admin CRM APIs
-
-app.get("/api/admin/counsellings", async (req, res) => {
-  try {
-    const data = await Counselling.find().sort({ createdAt: -1 });
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Update Counselling Status
-app.patch("/api/admin/counselling/:id", async (req, res) => {
-  try {
-    const { status } = req.body;
-
-    const updated = await Counselling.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-
-    res.json({
-      success: true,
-      data: updated,
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      success: false,
       error: error.message,
     });
   }
