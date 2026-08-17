@@ -9,6 +9,8 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const Razorpay = require("razorpay");
+const crypto = require("crypto");
 
 const Teacher = require("./models/Teacher");
 const DemoClass = require("./models/DemoClass");
@@ -16,9 +18,37 @@ const ParentRegistration = require("./models/ParentRegistration");
 const Counter = require("./models/Counter");
 const app = express();
 
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
 app.use(express.json());
 app.use(cors());
+// Razorpay Order API
+app.post("/api/create-payment-order", async (req, res) => {
+  try {
+    const options = {
+      amount: 99 * 100, // ₹99 in paise
+      currency: "INR",
+      receipt: "ST-" + Date.now(),
+    };
 
+    const order = await razorpay.orders.create(options);
+
+    res.status(200).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    console.error("Razorpay Order Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to create payment order.",
+    });
+  }
+});
 // MongoDB Connect
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -106,6 +136,55 @@ app.post("/api/demo-class", async (req, res) => {
   }
 });
 
+// Razorpay Payment Verification API
+app.post("/api/verify-payment", async (req, res) => {
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    } = req.body;
+
+    if (
+      !razorpay_order_id ||
+      !razorpay_payment_id ||
+      !razorpay_signature
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment verification details are missing.",
+      });
+    }
+
+    const generatedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(
+        razorpay_order_id + "|" + razorpay_payment_id
+      )
+      .digest("hex");
+
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: "Payment verification failed.",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Payment verified successfully.",
+      paymentId: razorpay_payment_id,
+      orderId: razorpay_order_id,
+    });
+  } catch (error) {
+    console.error("Payment Verification Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to verify payment.",
+    });
+  }
+});
 // Parent Registration API
 app.post("/api/parent-registration", async (req, res) => {
   try {
