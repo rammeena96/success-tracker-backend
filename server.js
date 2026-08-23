@@ -49,6 +49,30 @@ app.post("/api/create-payment-order", async (req, res) => {
     });
   }
 });
+// Razorpay Tutor Registration Order API - ₹299
+app.post("/api/create-tutor-payment-order", async (req, res) => {
+  try {
+    const options = {
+      amount: 299 * 100, // ₹299 in paise
+      currency: "INR",
+      receipt: "TUTOR-" + Date.now(),
+    };
+
+    const order = await razorpay.orders.create(options);
+
+    res.status(200).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    console.error("Tutor Razorpay Order Error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Unable to create tutor payment order.",
+    });
+  }
+});
 // MongoDB Connect
 mongoose
   .connect(process.env.MONGO_URI, {
